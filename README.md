@@ -71,7 +71,10 @@ public/            # Статические файлы
 |-----|-----------------|
 | Код на GitHub | https://github.com/arlana1541987-arch/chip-power-site |
 | Сайт локально | http://localhost:8080 (после `npm run dev`) |
-| Сайт в интернете | Нужен хостинг (Cloudflare Pages — бесплатно) |
+| Сайт без VPN (Россия) | https://arlana1541987-arch.github.io/chip-power-site/ |
+| Сайт с SSR (Cloudflare) | https://arlana1541987-arch-chip-power-site.chip-power.workers.dev |
+
+> **Важно:** адрес `*.workers.dev` в России часто блокируется провайдерами — для доступа без VPN используйте GitHub Pages (ссылка выше). Для постоянного адреса на своём домене подключите домен в Cloudflare: Workers → ваш Worker → Settings → Domains & Routes.
 
 ## Публикация в интернет (Cloudflare Pages)
 

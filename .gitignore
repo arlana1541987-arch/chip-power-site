@@ -5,6 +5,7 @@ node_modules
 dist
 dist-ssr
 .output
+.github-pages
 .vinxi
 .nitro
 .tanstack

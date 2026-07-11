@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { brands } from "@/data/cars";
 
 const COMPANY_EMAIL = "info@chip-tuning-spb.ru";
@@ -80,7 +81,7 @@ export function ApplicationForm() {
 
       <label className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
         <input type="checkbox" checked={form.agree} onChange={e => set("agree", e.target.checked)} className="mt-0.5 accent-primary" />
-        <span>Отправляя форму, я соглашаюсь с <a href="/privacy" className="text-primary underline">политикой конфиденциальности</a> и <a href="/oferta" className="text-primary underline">офертой</a>.</span>
+        <span>Отправляя форму, я соглашаюсь с <Link to="/privacy" reloadDocument className="text-primary underline">политикой конфиденциальности</Link> и <Link to="/oferta" reloadDocument className="text-primary underline">офертой</Link>.</span>
       </label>
 
       <button type="submit" disabled={!form.agree} className="btn-fire mt-5 w-full rounded-xl py-3.5 font-semibold disabled:opacity-50">

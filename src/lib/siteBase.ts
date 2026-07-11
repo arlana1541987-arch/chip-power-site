@@ -20,3 +20,12 @@ export function getRouterBasepath(): string | undefined {
   if (base === "/") return undefined;
   return base.replace(/\/$/, "");
 }
+
+/** Absolute site path for links (works on GitHub Pages and Cloudflare). */
+export function sitePath(path: string): string {
+  if (path.startsWith("#")) {
+    return `${getSiteBase()}${path}`;
+  }
+  const clean = path.startsWith("/") ? path.slice(1) : path;
+  return `${getSiteBase()}${clean}`;
+}

@@ -88,5 +88,6 @@ export const brandCatalog: BrandCatalogEntry[] = [
 ];
 
 export function brandLogoSrc(logoFile: string) {
-  return `/brands/${logoFile}.png`;
+  const base = import.meta.env.BASE_URL;
+  return `${base}brands/${logoFile}.png`;
 }

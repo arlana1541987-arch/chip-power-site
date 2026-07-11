@@ -23,8 +23,8 @@ function rewriteForGitHubPages(content) {
   result = result.replace(/(?<!chip-power-site)\/assets\//g, `${basePath}/assets/`);
   result = result.replace(/(?<!chip-power-site)\/brands\//g, `${basePath}/brands/`);
   result = result.replace(/(?<!chip-power-site)\/favicon\.ico/g, `${basePath}/favicon.ico`);
-  result = result.replace(/(?<!chip-power-site)\/oferta/g, `${basePath}/oferta`);
-  result = result.replace(/(?<!chip-power-site)\/privacy/g, `${basePath}/privacy`);
+  result = result.replace(/(?<!chip-power-site)(?<!\/assets)\/oferta/g, `${basePath}/oferta`);
+  result = result.replace(/(?<!chip-power-site)(?<!\/assets)\/privacy/g, `${basePath}/privacy`);
   result = result.replace(/href="\/#/g, `href="${basePath}/#`);
   result = result.replace(/href="\/"/g, `href="${basePath}/"`);
 

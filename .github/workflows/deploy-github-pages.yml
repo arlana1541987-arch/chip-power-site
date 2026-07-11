@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build site
+      - name: Build site for Cloudflare
         run: npm run build
 
       - name: Deploy SSR build to Cloudflare
@@ -47,10 +47,25 @@ jobs:
           wranglerVersion: "4"
           command: deploy .output/server --assets .output/public
 
+      - name: Build GitHub Pages bundle
+        run: npm run build:pages
+
       - name: Export static mirror for GitHub Pages
-        env:
-          PAGES_EXPORT_ORIGIN: https://arlana1541987-arch-chip-power-site.chip-power.workers.dev
-        run: node scripts/export-github-pages.mjs
+        run: |
+          rm -rf .wrangler
+          cd .output/server
+          npx wrangler@4 dev --local --ip 127.0.0.1 --port 8790 &
+          SERVER_PID=$!
+          cd "$GITHUB_WORKSPACE"
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8790/ > /dev/null; then
+              echo "Local SSR server ready"
+              break
+            fi
+            sleep 1
+          done
+          PAGES_EXPORT_ORIGIN=http://127.0.0.1:8790 node scripts/export-github-pages.mjs
+          kill $SERVER_PID 2>/dev/null || true
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

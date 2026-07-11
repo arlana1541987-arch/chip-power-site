@@ -5,9 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = join(fileURLToPath(import.meta.url), "..", "..");
 const publicDir = join(root, ".output", "public");
 const outDir = join(root, ".github-pages");
-const origin =
-  process.env.PAGES_EXPORT_ORIGIN ??
-  "https://arlana1541987-arch-chip-power-site.chip-power.workers.dev";
+const origin = process.env.PAGES_EXPORT_ORIGIN ?? "http://127.0.0.1:8790";
 const basePath = "/chip-power-site";
 
 const routes = [
@@ -111,7 +109,7 @@ async function assertAssetsExist(html, assetsDir) {
 
 async function fetchRouteHtml(route) {
   let lastError;
-  for (let attempt = 1; attempt <= 5; attempt += 1) {
+  for (let attempt = 1; attempt <= 30; attempt += 1) {
     try {
       const response = await fetch(`${origin}${route}`, {
         headers: { accept: "text/html" },

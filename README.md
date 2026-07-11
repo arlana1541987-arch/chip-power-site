@@ -62,16 +62,46 @@ public/            # Статические файлы
 
 ## Git
 
-Локальный репозиторий уже инициализирован (ветка `main`).
+Репозиторий: https://github.com/arlana1541987-arch/chip-power-site
 
-Для публикации на GitHub создайте пустой репозиторий и выполните:
+**Важно:** GitHub хранит код, но **не запускает сайт сам по себе**.  
+Страница репозитория на github.com — это не адрес вашего сайта в интернете.
 
-```bash
-git remote add origin https://github.com/ВАШ_АККАУНТ/chip-power-site.git
-git push -u origin main
-```
+| Что | Где открывается |
+|-----|-----------------|
+| Код на GitHub | https://github.com/arlana1541987-arch/chip-power-site |
+| Сайт локально | http://localhost:8080 (после `npm run dev`) |
+| Сайт в интернете | Нужен хостинг (Cloudflare Pages — бесплатно) |
 
-## Деплой
+## Публикация в интернет (Cloudflare Pages)
+
+Проект собран под **Cloudflare Workers** (SSR). После настройки каждый `git push` будет автоматически обновлять сайт.
+
+### Шаг 1. Cloudflare (бесплатно)
+
+1. Зарегистрируйтесь на https://dash.cloudflare.com/sign-up
+2. Откройте **My Profile → API Tokens → Create Token**
+3. Используйте шаблон **Edit Cloudflare Workers** (или права: Account → Cloudflare Pages → Edit, Workers → Edit)
+4. Скопируйте токен
+5. Account ID найдите на главной странице Cloudflare Dashboard (справа в блоке Account)
+
+### Шаг 2. Секреты в GitHub
+
+1. Откройте https://github.com/arlana1541987-arch/chip-power-site/settings/secrets/actions
+2. Добавьте два секрета:
+   - `CLOUDFLARE_API_TOKEN` — ваш токен
+   - `CLOUDFLARE_ACCOUNT_ID` — ваш Account ID
+
+### Шаг 3. Запуск деплоя
+
+После добавления секретов:
+- сделайте любой `git push` в ветку `main`, **или**
+- откройте вкладку **Actions** в репозитории и нажмите **Run workflow**
+
+Готовый сайт появится на адресе вида:  
+`https://arlana1541987-arch-chip-power-site.<ваш-поддомен>.workers.dev`
+
+## Деплой вручную (с вашего компьютера)
 
 Сборка создаёт `.output/` — готово для Cloudflare Workers (по умолчанию) или других платформ через Nitro.
 

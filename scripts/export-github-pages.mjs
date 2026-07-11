@@ -9,9 +9,9 @@ const origin = process.env.PAGES_EXPORT_ORIGIN ?? "http://127.0.0.1:8790";
 const basePath = "/chip-power-site";
 
 const routes = [
-  ["/", "index.html"],
-  ["/oferta", "oferta/index.html"],
-  ["/privacy", "privacy/index.html"],
+  [`${basePath}/`, "index.html"],
+  [`${basePath}/oferta`, "oferta/index.html"],
+  [`${basePath}/privacy`, "privacy/index.html"],
 ];
 
 const TEXT_EXTENSIONS = new Set([".html", ".js", ".css", ".json", ".txt", ".xml"]);
@@ -31,10 +31,19 @@ function rewriteForGitHubPages(content) {
   return result;
 }
 
+function finalizeMirrorHtml(html) {
+  // Keep the document visible while JS hydrates (prevents black/white flash).
+  const antiFlash = `<style id="mirror-anti-flash">html,body{background:#09090b;margin:0}</style>`;
+  if (html.includes("<head")) {
+    return html.replace(/<head([^>]*)>/i, `<head$1>${antiFlash}`);
+  }
+  return antiFlash + html;
+}
+
 function normalizeSsrHtml(html) {
   const nested = html.match(/<body[^>]*>\s*(<!DOCTYPE html>[\s\S]*?)<\/body>\s*<\/html>\s*$/i);
-  if (nested) return nested[1].trim();
-  return html.trim();
+  const doc = nested ? nested[1].trim() : html.trim();
+  return finalizeMirrorHtml(doc);
 }
 
 async function buildAssetLookup(assetsDir) {

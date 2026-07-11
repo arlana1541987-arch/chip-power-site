@@ -58,7 +58,7 @@ jobs:
           SERVER_PID=$!
           cd "$GITHUB_WORKSPACE"
           for i in $(seq 1 30); do
-            if curl -sf http://127.0.0.1:8790/ > /dev/null; then
+            if curl -sf http://127.0.0.1:8790/chip-power-site/ > /dev/null; then
               echo "Local SSR server ready"
               break
             fi

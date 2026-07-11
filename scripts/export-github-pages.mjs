@@ -46,6 +46,17 @@ function normalizeSsrHtml(html) {
   return finalizeMirrorHtml(doc);
 }
 
+/** Legal pages are static on GitHub Pages — JS hydration breaks due to basepath mismatch. */
+function stripClientScripts(html) {
+  return html
+    .replace(/<script\b[\s\S]*?<\/script>/gi, "")
+    .replace(/<link rel="modulepreload"[^>]*>/gi, "");
+}
+
+function isLegalPageOutput(outputFile) {
+  return outputFile.startsWith("oferta/") || outputFile.startsWith("privacy/");
+}
+
 async function buildAssetLookup(assetsDir) {
   const files = await readdir(assetsDir);
   const byStem = new Map();
@@ -152,8 +163,12 @@ async function exportStaticSite() {
 
   for (const [route, outputFile] of routes) {
     const fetched = await fetchRouteHtml(route);
-    const html = reconcileAssetReferences(fetched, assetLookup);
-    await assertAssetsExist(html, assetsDir);
+    let html = reconcileAssetReferences(fetched, assetLookup);
+    if (isLegalPageOutput(outputFile)) {
+      html = stripClientScripts(html);
+    } else {
+      await assertAssetsExist(html, assetsDir);
+    }
     const target = join(outDir, outputFile);
     await mkdir(join(target, ".."), { recursive: true });
     await writeFile(target, rewriteForGitHubPages(html), "utf8");

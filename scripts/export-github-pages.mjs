@@ -74,6 +74,8 @@ async function fetchRouteHtml(route) {
   }
   throw new Error(`Failed to export ${route} from ${origin}: ${lastError}`);
 }
+
+async function exportStaticSite() {
   await mkdir(outDir, { recursive: true });
   await cp(publicDir, outDir, { recursive: true, force: true });
   await rewriteAssetFiles(outDir);

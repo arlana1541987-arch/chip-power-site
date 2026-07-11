@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -33,6 +33,36 @@ function rewriteForGitHubPages(content) {
   return result;
 }
 
+function normalizeSsrHtml(html) {
+  const nested = html.match(/<body[^>]*>\s*(<!DOCTYPE html>[\s\S]*?)<\/body>\s*<\/html>\s*$/i);
+  if (nested) return nested[1].trim();
+  return html.trim();
+}
+
+async function buildAssetLookup(assetsDir) {
+  const files = await readdir(assetsDir);
+  const byStem = new Map();
+
+  for (const file of files) {
+    const match = file.match(/^(.+?)-[A-Za-z0-9_-]+(\.[a-z0-9]+)$/i);
+    if (match) {
+      byStem.set(`${match[1]}${match[2]}`, file);
+    }
+  }
+
+  return byStem;
+}
+
+function reconcileAssetReferences(html, byStem) {
+  return html.replace(/\/assets\/([A-Za-z0-9_.-]+)/g, (full, filename) => {
+    const match = filename.match(/^(.+?)-[A-Za-z0-9_-]+(\.[a-z0-9]+)$/i);
+    if (!match) return full;
+
+    const actual = byStem.get(`${match[1]}${match[2]}`);
+    return actual ? `/assets/${actual}` : full;
+  });
+}
+
 async function rewriteTree(dir) {
   let entries;
   try {
@@ -59,6 +89,26 @@ async function rewriteTree(dir) {
   }
 }
 
+async function assertAssetsExist(html, assetsDir) {
+  const refs = [
+    ...html.matchAll(/\/assets\/([A-Za-z0-9_.-]+\.(?:js|css|jpg|jpeg|png|webp|svg|ico))/g),
+  ].map((match) => match[1]);
+  const unique = [...new Set(refs)];
+  const missing = [];
+
+  for (const ref of unique) {
+    try {
+      await stat(join(assetsDir, ref));
+    } catch {
+      missing.push(ref);
+    }
+  }
+
+  if (missing.length > 0) {
+    throw new Error(`HTML references missing assets: ${missing.join(", ")}`);
+  }
+}
+
 async function fetchRouteHtml(route) {
   let lastError;
   for (let attempt = 1; attempt <= 5; attempt += 1) {
@@ -69,7 +119,7 @@ async function fetchRouteHtml(route) {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      const html = await response.text();
+      const html = normalizeSsrHtml(await response.text());
       if (html.length < 1000) {
         throw new Error(`Unexpected short HTML (${html.length} bytes)`);
       }
@@ -83,12 +133,20 @@ async function fetchRouteHtml(route) {
 }
 
 async function exportStaticSite() {
+  await rm(outDir, { recursive: true, force: true });
   await mkdir(outDir, { recursive: true });
   await cp(publicDir, outDir, { recursive: true, force: true });
+  await rm(join(outDir, "_headers"), { force: true });
+  await writeFile(join(outDir, ".nojekyll"), "");
   await rewriteTree(outDir);
 
+  const assetsDir = join(outDir, "assets");
+  const assetLookup = await buildAssetLookup(assetsDir);
+
   for (const [route, outputFile] of routes) {
-    const html = await fetchRouteHtml(route);
+    const fetched = await fetchRouteHtml(route);
+    const html = reconcileAssetReferences(fetched, assetLookup);
+    await assertAssetsExist(html, assetsDir);
     const target = join(outDir, outputFile);
     await mkdir(join(target, ".."), { recursive: true });
     await writeFile(target, rewriteForGitHubPages(html), "utf8");

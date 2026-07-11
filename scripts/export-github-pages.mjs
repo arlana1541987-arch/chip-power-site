@@ -16,34 +16,41 @@ const routes = [
   ["/privacy", "privacy/index.html"],
 ];
 
+const TEXT_EXTENSIONS = new Set([".html", ".js", ".css", ".json", ".txt", ".xml"]);
+
 function rewriteForGitHubPages(content) {
-  return content
-    .replaceAll('href="/assets/', `href="${basePath}/assets/`)
-    .replaceAll('src="/assets/', `src="${basePath}/assets/`)
-    .replaceAll('href="/brands/', `href="${basePath}/brands/`)
-    .replaceAll('src="/brands/', `src="${basePath}/brands/`)
-    .replaceAll('"/brands/', `"${basePath}/brands/`)
-    .replaceAll("'/brands/", `'${basePath}/brands/`)
-    .replaceAll("`/brands/", `\`${basePath}/brands/`)
-    .replaceAll('href="/favicon.ico', `href="${basePath}/favicon.ico`)
-    .replaceAll('href="/oferta', `href="${basePath}/oferta`)
-    .replaceAll('href="/privacy', `href="${basePath}/privacy`)
-    .replaceAll('href="/#', `href="${basePath}/#`)
-    .replaceAll('href="/"', `href="${basePath}/"`);
+  let result = content;
+
+  // Root-absolute paths -> GitHub Pages project prefix (skip already rewritten).
+  result = result.replace(/(?<!chip-power-site)\/assets\//g, `${basePath}/assets/`);
+  result = result.replace(/(?<!chip-power-site)\/brands\//g, `${basePath}/brands/`);
+  result = result.replace(/(?<!chip-power-site)\/favicon\.ico/g, `${basePath}/favicon.ico`);
+  result = result.replace(/(?<!chip-power-site)\/oferta/g, `${basePath}/oferta`);
+  result = result.replace(/(?<!chip-power-site)\/privacy/g, `${basePath}/privacy`);
+  result = result.replace(/href="\/#/g, `href="${basePath}/#`);
+  result = result.replace(/href="\/"/g, `href="${basePath}/"`);
+
+  return result;
 }
 
-async function rewriteAssetFiles(dir) {
-  const assetsDir = join(dir, "assets");
-  let files;
+async function rewriteTree(dir) {
+  let entries;
   try {
-    files = await readdir(assetsDir);
+    entries = await readdir(dir, { withFileTypes: true });
   } catch {
     return;
   }
 
-  for (const file of files) {
-    if (!file.endsWith(".js")) continue;
-    const filePath = join(assetsDir, file);
+  for (const entry of entries) {
+    const filePath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await rewriteTree(filePath);
+      continue;
+    }
+
+    const ext = entry.name.slice(entry.name.lastIndexOf("."));
+    if (!TEXT_EXTENSIONS.has(ext)) continue;
+
     const original = await readFile(filePath, "utf8");
     const rewritten = rewriteForGitHubPages(original);
     if (rewritten !== original) {
@@ -78,7 +85,7 @@ async function fetchRouteHtml(route) {
 async function exportStaticSite() {
   await mkdir(outDir, { recursive: true });
   await cp(publicDir, outDir, { recursive: true, force: true });
-  await rewriteAssetFiles(outDir);
+  await rewriteTree(outDir);
 
   for (const [route, outputFile] of routes) {
     const html = await fetchRouteHtml(route);
@@ -88,6 +95,7 @@ async function exportStaticSite() {
     console.log(`Exported ${route} -> ${outputFile}`);
   }
 
+  await rewriteTree(outDir);
   await cp(join(outDir, "index.html"), join(outDir, "404.html"));
   console.log(`GitHub Pages export ready in ${outDir}`);
 }

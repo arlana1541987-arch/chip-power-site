@@ -1,3 +1,5 @@
+import { getSiteBase } from "@/lib/siteBase";
+
 /** Display order and metadata for all 78 brand tiles (matches reference layout). */
 export type BrandCatalogEntry = {
   slug: string;
@@ -88,6 +90,5 @@ export const brandCatalog: BrandCatalogEntry[] = [
 ];
 
 export function brandLogoSrc(logoFile: string) {
-  const base = import.meta.env.BASE_URL;
-  return `${base}brands/${logoFile}.png`;
+  return `${getSiteBase()}brands/${logoFile}.png`;
 }

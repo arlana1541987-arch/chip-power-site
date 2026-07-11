@@ -1,3 +1,5 @@
+import { brandCatalog } from "./brandCatalog";
+
 export type EnginePrice = {
   engine: string;
   stage1: number;
@@ -12,17 +14,31 @@ export type CarModel = {
 export type CarBrand = {
   slug: string;
   name: string;
-  logo: string; // emoji or short text as placeholder logo
-  color: string; // accent color
+  logoFile: string;
+  color: string;
   models: CarModel[];
 };
 
-// Prices in RUB. Hardcoded — not from DB.
-export const brands: CarBrand[] = [
+function defaultModels(): CarModel[] {
+  return [
+    {
+      model: "Популярные модели",
+      engines: [
+        { engine: "1.6–2.0 бензин (Stage 1)", stage1: 12000, stage2: 18000 },
+        { engine: "2.0–3.0 турбо (Stage 1)", stage1: 16000, stage2: 24000 },
+        { engine: "2.0–3.0 дизель (Stage 1)", stage1: 15000, stage2: 22000 },
+      ],
+    },
+    {
+      model: "Другая модель — уточнить по VIN",
+      engines: [{ engine: "Индивидуальный расчёт", stage1: 14000, stage2: 20000 }],
+    },
+  ];
+}
+
+const legacyList: { slug: string; color: string; models: CarModel[] }[] = [
   {
     slug: "bmw",
-    name: "BMW",
-    logo: "BMW",
     color: "#1c69d4",
     models: [
       { model: "3 Series (F30)", engines: [
@@ -50,8 +66,6 @@ export const brands: CarBrand[] = [
   },
   {
     slug: "audi",
-    name: "Audi",
-    logo: "AUDI",
     color: "#bb0a30",
     models: [
       { model: "A3 (8V)", engines: [
@@ -79,8 +93,6 @@ export const brands: CarBrand[] = [
   },
   {
     slug: "mercedes",
-    name: "Mercedes-Benz",
-    logo: "MB",
     color: "#00adef",
     models: [
       { model: "C-Class (W205)", engines: [
@@ -101,9 +113,7 @@ export const brands: CarBrand[] = [
     ],
   },
   {
-    slug: "vw",
-    name: "Volkswagen",
-    logo: "VW",
+    slug: "volkswagen",
     color: "#001e50",
     models: [
       { model: "Golf VII", engines: [
@@ -131,8 +141,6 @@ export const brands: CarBrand[] = [
   },
   {
     slug: "toyota",
-    name: "Toyota",
-    logo: "TOYOTA",
     color: "#eb0a1e",
     models: [
       { model: "Camry", engines: [
@@ -156,8 +164,6 @@ export const brands: CarBrand[] = [
   },
   {
     slug: "kia",
-    name: "Kia",
-    logo: "KIA",
     color: "#05141f",
     models: [
       { model: "Rio", engines: [
@@ -182,8 +188,6 @@ export const brands: CarBrand[] = [
   },
   {
     slug: "hyundai",
-    name: "Hyundai",
-    logo: "HYUNDAI",
     color: "#002c5f",
     models: [
       { model: "Solaris", engines: [
@@ -207,8 +211,6 @@ export const brands: CarBrand[] = [
   },
   {
     slug: "skoda",
-    name: "Škoda",
-    logo: "ŠKODA",
     color: "#4ba82e",
     models: [
       { model: "Octavia A7", engines: [
@@ -230,8 +232,6 @@ export const brands: CarBrand[] = [
   },
   {
     slug: "ford",
-    name: "Ford",
-    logo: "FORD",
     color: "#003478",
     models: [
       { model: "Focus III", engines: [
@@ -251,8 +251,6 @@ export const brands: CarBrand[] = [
   },
   {
     slug: "mazda",
-    name: "Mazda",
-    logo: "MAZDA",
     color: "#101820",
     models: [
       { model: "3 (BM/BN)", engines: [
@@ -271,8 +269,6 @@ export const brands: CarBrand[] = [
   },
   {
     slug: "nissan",
-    name: "Nissan",
-    logo: "NISSAN",
     color: "#c3002f",
     models: [
       { model: "Qashqai", engines: [
@@ -290,8 +286,6 @@ export const brands: CarBrand[] = [
   },
   {
     slug: "lada",
-    name: "LADA",
-    logo: "LADA",
     color: "#0b4d24",
     models: [
       { model: "Vesta", engines: [
@@ -312,3 +306,16 @@ export const brands: CarBrand[] = [
     ],
   },
 ];
+
+const legacyMap = new Map(legacyList.map((b) => [b.slug, b]));
+
+export const brands: CarBrand[] = brandCatalog.map((entry) => {
+  const detailed = legacyMap.get(entry.slug);
+  return {
+    slug: entry.slug,
+    name: entry.name,
+    logoFile: entry.logoFile,
+    color: detailed?.color ?? "#1a1a1a",
+    models: detailed?.models ?? defaultModels(),
+  };
+});

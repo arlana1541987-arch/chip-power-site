@@ -1,0 +1,49 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+.output
+.vinxi
+.nitro
+.tanstack
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+*.local
+.dev.vars
+
+# Wrangler / Cloudflare
+.wrangler/
+
+# TypeScript
+*.tsbuildinfo
+
+# Local tooling (portable Node/Git used during setup)
+.tools
+
+# Lovable sandbox artifacts
+.workspace
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

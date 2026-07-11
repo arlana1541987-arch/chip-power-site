@@ -13,13 +13,14 @@ type LegalLinkProps = {
 export function LegalLink({ to, className, children }: LegalLinkProps) {
   const href = sitePath(to);
 
-  function onClick(e: MouseEvent<HTMLAnchorElement>) {
+  function onClickCapture(e: MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    window.location.assign(href);
+    e.stopPropagation();
+    window.location.assign(new URL(href, window.location.origin).href);
   }
 
   return (
-    <a href={href} className={className} onClick={onClick}>
+    <a href={href} className={className} onClickCapture={onClickCapture}>
       {children}
     </a>
   );

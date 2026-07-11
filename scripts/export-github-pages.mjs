@@ -16,13 +16,21 @@ const routes = [
 
 const TEXT_EXTENSIONS = new Set([".html", ".js", ".css", ".json", ".txt", ".xml"]);
 
-function rewriteForGitHubPages(content) {
+function rewriteAssetPaths(content) {
   let result = content;
 
-  // Root-absolute paths -> GitHub Pages project prefix (skip already rewritten).
+  // Root-absolute asset paths -> GitHub Pages project prefix (skip already rewritten).
   result = result.replace(/(?<!chip-power-site)\/assets\//g, `${basePath}/assets/`);
   result = result.replace(/(?<!chip-power-site)\/brands\//g, `${basePath}/brands/`);
   result = result.replace(/(?<!chip-power-site)\/favicon\.ico/g, `${basePath}/favicon.ico`);
+
+  return result;
+}
+
+function rewriteHtmlPaths(content) {
+  let result = rewriteAssetPaths(content);
+
+  // Route links belong in HTML only — rewriting these in JS breaks TanStack Router paths.
   result = result.replace(/(?<!chip-power-site)(?<!\/assets)\/oferta\/?/g, `${basePath}/oferta/`);
   result = result.replace(/(?<!chip-power-site)(?<!\/assets)\/privacy\/?/g, `${basePath}/privacy/`);
   result = result.replace(/href="\/#/g, `href="${basePath}/#`);
@@ -100,7 +108,7 @@ async function rewriteTree(dir) {
     if (!TEXT_EXTENSIONS.has(ext)) continue;
 
     const original = await readFile(filePath, "utf8");
-    const rewritten = rewriteForGitHubPages(original);
+    const rewritten = ext === ".html" ? rewriteHtmlPaths(original) : rewriteAssetPaths(original);
     if (rewritten !== original) {
       await writeFile(filePath, rewritten, "utf8");
     }
@@ -171,7 +179,7 @@ async function exportStaticSite() {
     }
     const target = join(outDir, outputFile);
     await mkdir(join(target, ".."), { recursive: true });
-    await writeFile(target, rewriteForGitHubPages(html), "utf8");
+    await writeFile(target, rewriteHtmlPaths(html), "utf8");
     console.log(`Exported ${route} -> ${outputFile}`);
   }
 

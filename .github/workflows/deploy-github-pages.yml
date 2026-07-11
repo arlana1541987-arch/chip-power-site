@@ -36,8 +36,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build static mirror for GitHub Pages
-        run: npm run build:pages
+      - name: Build site
+        run: npm run build
+
+      - name: Deploy SSR build to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4"
+          command: deploy .output/server --assets .output/public
+
+      - name: Export static mirror for GitHub Pages
+        env:
+          PAGES_EXPORT_ORIGIN: https://arlana1541987-arch-chip-power-site.chip-power.workers.dev
+        run: node scripts/export-github-pages.mjs
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

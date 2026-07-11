@@ -26,6 +26,9 @@ export function sitePath(path: string): string {
   if (path.startsWith("#")) {
     return `${getSiteBase()}${path}`;
   }
+  if (path === "/" || path === "") {
+    return getSiteBase();
+  }
   const clean = path.startsWith("/") ? path.slice(1) : path;
-  return `${getSiteBase()}${clean}`;
+  return `${getSiteBase()}${clean}/`;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { LegalLink } from "@/components/LegalLink";
 
 const KEY = "cookies_ok_v1";
 
@@ -15,14 +15,14 @@ export function CookieBanner() {
       <div className="card-surface rounded-2xl p-4 shadow-2xl">
         <div className="text-sm">
           🍪 Мы используем cookies для улучшения работы сайта и аналитики. Продолжая пользоваться сайтом, вы соглашаетесь с
-          {" "}<Link to="/privacy" reloadDocument className="text-primary underline">политикой конфиденциальности</Link>.
+          {" "}<LegalLink to="/privacy" className="text-primary underline">политикой конфиденциальности</LegalLink>.
         </div>
         <div className="mt-3 flex gap-2">
           <button onClick={() => { localStorage.setItem(KEY, "1"); setShow(false); }}
             className="btn-fire flex-1 rounded-lg px-4 py-2 text-sm font-semibold">
             Принять
           </button>
-          <Link to="/privacy" reloadDocument className="rounded-lg border border-border px-4 py-2 text-sm">Подробнее</Link>
+          <LegalLink to="/privacy" className="rounded-lg border border-border px-4 py-2 text-sm">Подробнее</LegalLink>
         </div>
       </div>
     </div>

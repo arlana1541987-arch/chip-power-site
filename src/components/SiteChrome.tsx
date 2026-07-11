@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import { sitePath } from "@/lib/siteBase";
+import { LegalLink } from "@/components/LegalLink";
 
 export function SiteHeader() {
   return (
@@ -60,8 +60,8 @@ export function SiteFooter() {
         <div>
           <div className="mb-2 text-sm font-semibold">Документы</div>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
-            <li><Link to="/oferta" reloadDocument className="hover:text-primary">Оферта</Link></li>
-            <li><Link to="/privacy" reloadDocument className="hover:text-primary">Политика конфиденциальности</Link></li>
+            <li><LegalLink to="/oferta" className="hover:text-primary">Оферта</LegalLink></li>
+            <li><LegalLink to="/privacy" className="hover:text-primary">Политика конфиденциальности</LegalLink></li>
           </ul>
         </div>
       </div>

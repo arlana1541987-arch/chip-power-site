@@ -83,12 +83,13 @@ export const brandCatalog: BrandCatalogEntry[] = [
   { slug: "toyota", name: "TOYOTA", logoFile: "toyota" },
   { slug: "volkswagen", name: "VOLKSWAGEN", logoFile: "volkswagen" },
   { slug: "volvo", name: "VOLVO", logoFile: "volvo" },
-  { slug: "xcite", name: "XCITE", logoFile: "xcite" },
+  { slug: "xcite", name: "XCITE", logoFile: "xcite.svg" },
   { slug: "zotye", name: "ZOTYE", logoFile: "zotye" },
   { slug: "lada", name: "LADA", logoFile: "lada" },
   { slug: "uaz", name: "UAZ", logoFile: "uaz" },
 ];
 
 export function brandLogoSrc(logoFile: string) {
-  return `${getSiteBase()}brands/${logoFile}.png`;
+  const file = logoFile.includes(".") ? logoFile : `${logoFile}.png`;
+  return `${getSiteBase()}brands/${file}`;
 }

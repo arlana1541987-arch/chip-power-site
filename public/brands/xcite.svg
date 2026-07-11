@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" role="img" aria-label="XCITE">
+  <ellipse cx="100" cy="60" rx="92" ry="52" fill="none" stroke="#111827" stroke-width="6" />
+  <text
+    x="100"
+    y="78"
+    text-anchor="middle"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="56"
+    font-weight="700"
+    fill="#111827"
+  >
+    X
+  </text>
+</svg>

@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, "..", "public", "brands");
 const CDN = "https://cdn.jsdelivr.net/gh/filippofilip95/car-logos-dataset@master/logos/optimized";
+const UA = "ChipPowerSite/1.0 (logo-download; github.com/arlana1541987-arch/chip-power-site)";
+const force = process.argv.includes("--force");
 
 /** slug -> dataset filename (without .png) */
 const files = {
@@ -83,64 +85,87 @@ const files = {
   toyota: "toyota",
   volkswagen: "volkswagen",
   volvo: "volvo",
-  xcite: "xcite",
   zotye: "zotye",
   lada: "lada",
   uaz: "uaz",
 };
 
-/** Fallback chain when primary logo missing in dataset */
-const fallbacks = {
-  baic: ["baic"],
-  changan: ["changan", "chery"],
-  cheryexeed: ["exeed", "chery"],
-  dongfeng: ["dongfeng", "faw"],
-  forthing: ["forthing", "dongfeng"],
-  gac: ["gac", "changan"],
-  gaz: ["uaz", "lada"],
-  hongqi: ["hongqi", "faw"],
-  jaecoo: ["jaecoo", "chery", "exeed"],
-  jetour: ["jetour", "chery"],
-  kaiyi: ["kaiyi", "chery"],
-  livan: ["livan", "geely"],
-  moskvich: ["moskvich", "lada"],
-  omoda: ["omoda", "chery"],
-  soueast: ["soueast", "mitsubishi"],
-  swm: ["swm", "lifan"],
-  tank: ["tank", "great-wall"],
-  tenet: ["tenet", "chery"],
-  xcite: ["xcite", "chery"],
-  zotye: ["zotye", "lifan"],
+/** Out filename -> manual URL when CDN has no logo. Never use another brand as fallback. */
+const manualSources = {
+  gac: "https://upload.wikimedia.org/wikipedia/commons/d/dc/%D7%9C%D7%95%D7%92%D7%95_%D7%A9%D7%9C_%D7%A7%D7%91%D7%95%D7%A6%D7%AA_GAC.png",
+  forthing:
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Forthing_badge.jpg/500px-Forthing_badge.jpg",
+  jaecoo:
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Jaecoo_wordmark.svg/960px-Jaecoo_wordmark.svg.png",
+  kaiyi:
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Kaiyi_logo.png/960px-Kaiyi_logo.png",
+  tenet: "https://upload.wikimedia.org/wikipedia/commons/f/ff/Tenet_Logo.png",
+  tank: "https://commons.wikimedia.org/wiki/Special:FilePath/Tank_(Great_Wall_Motor_brand)_logo,_global_market.svg?width=512",
+  moskvich: "https://commons.wikimedia.org/wiki/Special:FilePath/Logo_of_Moskvich.svg?width=640",
+  livan: "https://commons.wikimedia.org/wiki/Special:FilePath/Livan_Automotive_logo.svg?width=512",
+  swm: "https://upload.wikimedia.org/wikipedia/commons/b/bb/SWM_logo.png",
+  cheryexeed: "https://upload.wikimedia.org/wikipedia/commons/b/b8/Exeed_logo.png",
+  exeed: "https://upload.wikimedia.org/wikipedia/commons/b/b8/Exeed_logo.png",
 };
 
-async function tryDownload(name) {
-  const url = `${CDN}/${name}.png`;
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  return Buffer.from(await res.arrayBuffer());
+function isValidImage(buf) {
+  const png =
+    buf.length >= 8 &&
+    buf[0] === 0x89 &&
+    buf[1] === 0x50 &&
+    buf[2] === 0x4e &&
+    buf[3] === 0x47;
+  const jpeg = buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8;
+  return (png || jpeg) && buf.length >= 500;
 }
 
-async function downloadOne(outName, candidates) {
+async function fetchBuffer(url) {
+  const res = await fetch(url, {
+    headers: { "User-Agent": UA },
+    redirect: "follow",
+  });
+  if (!res.ok) return null;
+  const buf = Buffer.from(await res.arrayBuffer());
+  return isValidImage(buf) ? buf : null;
+}
+
+async function downloadOne(outName, cdnName) {
   const dest = path.join(outDir, `${outName}.png`);
-  if (existsSync(dest)) {
+  if (existsSync(dest) && !force) {
     console.log(`skip ${outName}.png`);
     return;
   }
-  for (const candidate of candidates) {
-    const buf = await tryDownload(candidate);
+
+  const manual = manualSources[outName];
+  if (manual) {
+    const buf = await fetchBuffer(manual);
     if (buf) {
       await writeFile(dest, buf);
-      console.log(`ok   ${outName}.png <- ${candidate}.png`);
+      console.log(`ok   ${outName}.png <- manual`);
       return;
     }
   }
-  console.warn(`miss ${outName}.png (${candidates.join(", ")})`);
+
+  const buf = await fetchBuffer(`${CDN}/${cdnName}.png`);
+  if (buf) {
+    await writeFile(dest, buf);
+    console.log(`ok   ${outName}.png <- ${cdnName}.png`);
+    return;
+  }
+
+  console.warn(`miss ${outName}.png (cdn: ${cdnName})`);
 }
 
 await mkdir(outDir, { recursive: true });
 
-const unique = new Set(Object.values(files));
-for (const file of unique) {
-  const candidates = fallbacks[file] ?? [file];
-  await downloadOne(file, candidates);
+const slugToOut = Object.entries(files);
+const uniqueCdn = [...new Set(Object.values(files))];
+
+for (const cdnName of uniqueCdn) {
+  const outNames = slugToOut.filter(([, cdn]) => cdn === cdnName).map(([slug]) => slug);
+  for (const outName of outNames) {
+    await downloadOne(outName, cdnName);
+  }
 }
+
+console.log("\nNote: xcite uses public/brands/xcite.svg (no PNG on Wikimedia).");
